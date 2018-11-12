@@ -1,0 +1,63 @@
+---
+
+version: "3.5"
+services:
+  ldap:
+    image: dcm4che/slapd-dcm4chee:2.4.44-14.1
+    env_file: docker-compose.env
+    volumes:
+      - type: bind
+        source: /etc/localtime
+        target: /etc/localtime
+        read_only: true
+      - type: volume
+        source: var_lib_ldap
+        target: /var/lib/ldap
+      - type: volume
+        source: ldap_slapd
+        target: /etc/ldap/slapd.d
+  db:
+    image: dcm4che/postgres-dcm4chee:10.4-14
+    env_file: docker-compose.env
+    volumes:
+      - type: bind
+        source: /etc/localtime
+        target: /etc/localtime
+        read_only: true
+      - type: volume
+        source: postgresql_data
+        target: /var/lib/postgresql/data
+  arc:
+    image: dcm4che/dcm4chee-arc-psql:5.14.1
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+#      - "9990:9990"
+      - "11112:11112"
+#      - "2575:2575"
+    env_file: docker-compose.env
+    environment:
+      WILDFLY_CHOWN: /opt/wildfly/standalone /storage
+      WILDFLY_WAIT_FOR: ldap:389 db:5432
+    depends_on:
+      - ldap
+      - db
+    volumes:
+      - type: bind
+        source: /etc/localtime
+        target: /etc/localtime
+        read_only: true
+      - type: volume
+        source: opt_wildfly
+        target: /opt/wildfly/standalone
+      - type: volume
+        source: arc_storage
+        target: /storage
+
+volumes:
+  var_lib_ldap:
+  ldap_slapd:
+  postgresql_data:
+  opt_wildfly:
+  arc_storage:
+
