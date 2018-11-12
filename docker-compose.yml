@@ -5,6 +5,10 @@ services:
   ldap:
     image: dcm4che/slapd-dcm4chee:2.4.44-14.1
     env_file: docker-compose.env
+    container_name: dcm4chee_ldap_container
+    hostname: dcm4chee_ldap
+    tmpfs: /tmp
+    restart: always
     volumes:
       - type: bind
         source: /etc/localtime
@@ -16,9 +20,14 @@ services:
       - type: volume
         source: ldap_slapd
         target: /etc/ldap/slapd.d
+
   db:
     image: dcm4che/postgres-dcm4chee:10.4-14
     env_file: docker-compose.env
+    container_name: dcm4chee_db_container
+    hostname: dcm4chee_db
+    tmpfs: /tmp
+    restart: always
     volumes:
       - type: bind
         source: /etc/localtime
@@ -39,6 +48,10 @@ services:
     environment:
       WILDFLY_CHOWN: /opt/wildfly/standalone /storage
       WILDFLY_WAIT_FOR: ldap:389 db:5432
+    container_name: dcm4chee_arc_container
+    hostname: dcm4chee_arc
+    tmpfs: /tmp
+    restart: always
     depends_on:
       - ldap
       - db
