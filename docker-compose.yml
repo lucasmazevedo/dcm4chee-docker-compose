@@ -4,6 +4,9 @@ version: "3.5"
 services:
   ldap:
     image: dcm4che/slapd-dcm4chee:2.4.44-17.0
+    ports:
+      - "389:389"
+      - "636:636"
     env_file: docker-compose.env
     container_name: dcm4chee_ldap_container
     hostname: dcm4chee_ldap
@@ -56,6 +59,8 @@ services:
 
   db:
     image: dcm4che/postgres-dcm4chee:11.2-17
+    ports:
+      - "5432:5432"
     env_file: docker-compose.env
     container_name: dcm4chee_db_container
     hostname: dcm4chee_db
@@ -75,9 +80,11 @@ services:
     ports:
       - "8080:8080"
       - "8443:8443"
-#      - "9990:9990"
+      - "9990:9990"
+      - "9993:9993"
+      - "11112:11112"
       - "104:11112"
-#      - "2575:2575"
+      - "2575:2575"
     env_file: docker-compose.env
     environment:
       WILDFLY_CHOWN: /opt/wildfly/standalone /storage
