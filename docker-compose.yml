@@ -23,6 +23,25 @@ services:
         source: ldap_slapd
         target: /etc/ldap/slapd.d
 
+  keycloak-db:
+    image: postgres:11-alpine
+    container_name: dcm4chee_keycloak_db_container
+    hostname: dcm4chee_keycloak_db
+    tmpfs: /tmp
+    restart: always
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - type: bind
+        source: /etc/localtime
+        target: /etc/localtime
+        read_only: true
+      - type: volume
+        source: postgresql_keycloak_data
+        target: /var/lib/postgresql/data
+
   keycloak:
     image: dcm4che/keycloak:6.0.1-17.0
     ports:
@@ -36,8 +55,9 @@ services:
       HTTPS_PORT: 8843
       MANAGEMENT_HTTP_PORT: 8990
       MANAGEMENT_HTTPS_PORT: 8993
-      KEYCLOAK_WAIT_FOR: ldap:389 db:5432
-      KEYCLOAK_DB_HOST: db
+      KEYCLOAK_WAIT_FOR: ldap:389 keycloak-db:5432
+      KEYCLOAK_DB_HOST: keycloak-db
+      # Without this line, keycloak throws an error...
       JGROUPS_DISCOVERY_INITIAL_HOSTS: ""
     container_name: dcm4chee_keycloak_container
     hostname: dcm4chee_keycloak
@@ -45,7 +65,7 @@ services:
     restart: always
     depends_on:
       - ldap
-      - db
+      - keycloak-db
     networks:
       default:
         aliases:
@@ -121,6 +141,7 @@ volumes:
   var_lib_ldap:
   ldap_slapd:
   keycloak:
+  postgresql_keycloak_data:
   postgresql_data:
   opt_wildfly:
 
