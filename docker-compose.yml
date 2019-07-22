@@ -79,6 +79,10 @@ services:
         source: /etc/timezone
         target: /etc/timezone
         read_only: true
+      - type: bind
+        source: ./cert.p12
+        target: /run/cert.p12
+        read_only: true
       - type: volume
         source: keycloak
         target: /opt/keycloak/standalone
@@ -129,6 +133,10 @@ services:
       - type: bind
         source: /etc/timezone
         target: /etc/timezone
+        read_only: true
+      - type: bind
+        source: ./cert.p12
+        target: /run/cert.p12
         read_only: true
       - type: volume
         source: opt_wildfly
