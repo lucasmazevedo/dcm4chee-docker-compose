@@ -1,12 +1,11 @@
 ---
 
 version: "3.5"
+
 services:
+
   ldap:
     image: dcm4che/slapd-dcm4chee:2.4.44-17.0
-    ports:
-      - "389:389"
-      - "636:636"
     env_file: docker-compose.env
     container_name: dcm4chee_ldap_container
     hostname: dcm4chee_ldap
@@ -37,13 +36,20 @@ services:
       HTTPS_PORT: 8843
       MANAGEMENT_HTTP_PORT: 8990
       MANAGEMENT_HTTPS_PORT: 8993
-      KEYCLOAK_WAIT_FOR: ldap:389
+      KEYCLOAK_WAIT_FOR: ldap:389 db:5432
+      KEYCLOAK_DB_HOST: db
+      JGROUPS_DISCOVERY_INITIAL_HOSTS: ""
     container_name: dcm4chee_keycloak_container
     hostname: dcm4chee_keycloak
     tmpfs: /tmp
     restart: always
     depends_on:
       - ldap
+      - db
+    networks:
+      default:
+        aliases:
+          - ${public_domain}
     volumes:
       - type: bind
         source: /etc/localtime
@@ -59,8 +65,6 @@ services:
 
   db:
     image: dcm4che/postgres-dcm4chee:11.2-17
-    ports:
-      - "5432:5432"
     env_file: docker-compose.env
     container_name: dcm4chee_db_container
     hostname: dcm4chee_db
@@ -80,14 +84,14 @@ services:
     ports:
       - "8080:8080"
       - "8443:8443"
-      - "9990:9990"
-      - "9993:9993"
-      - "11112:11112"
+#      - "9990:9990"
+#      - "9993:9993"
       - "104:11112"
-      - "2575:2575"
+#      - "2575:2575"
     env_file: docker-compose.env
     environment:
       WILDFLY_CHOWN: /opt/wildfly/standalone /storage
+      AUTH_SERVER_URL: https://${public_domain}:8843/auth
       WILDFLY_WAIT_FOR: ldap:389 db:5432
     container_name: dcm4chee_arc_container
     hostname: dcm4chee_arc
